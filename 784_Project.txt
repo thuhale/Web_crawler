@@ -1,0 +1,16 @@
+Project: 784
+Choose two websites that concern same entities. Have data in structure format (conform to a schema) 
+
+write a simple wrapper to pull out website
+
+should have a few thousand pages - convert into relational table 
+
+can pick something with API but cannot sue
+
+imdb, rottentomatoes 
+
+match two websites together
+
+web crawler: beautiful suit (python package) (10-20k pages per site)
+
+
