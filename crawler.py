@@ -10,7 +10,7 @@ from selenium import webdriver
 def FindCategory(level):
     r = requests.get('http://www.sephora.com/')
     soup = BeautifulSoup(r.text, "html.parser")
-    header_html = soup.find_all(attrs={'class': 'Header-nav'})
+    header_html = soup.find_all(attrs={'class': 'Header'})
 
     soup2 = BeautifulSoup(str(header_html[0]), "html.parser")
     if level==3: linkClass = "Nav-link"
@@ -18,27 +18,34 @@ def FindCategory(level):
     links = soup2.findAll('a', linkClass)
     return links
 
-def FindProductsInOneCategory(categoryLink):
+def FindProductsInOneCategory(categoryLink, file, driver):
     url = 'http://www.sephora.com' + categoryLink['href'] + '?pageSize=-1'
-    chromedriver = "/Users/lehathu/Desktop/Web_crawler/chromedriver"
-    os.environ["webdriver.chrome.driver"] = chromedriver
-    driver = webdriver.Chrome("/Users/lehathu/Desktop/Web_crawler/chromedriver")
-
     driver.get(url)
     soup = BeautifulSoup(driver.page_source , 'html.parser')
-    driver.close()
     productDiv = soup.find_all(attrs={'class': 'search-results'})
+    if len(productDiv)==0:
+        return
 
     soup2 = BeautifulSoup(str(productDiv[0]), "html.parser")
     productLinks = soup2.findAll('a')
+    file.write("\n%d: %s \n" % (len(productLinks), url))
     for link in productLinks:
-        print link['href']
+        file.write(link['href'] + "\n")
 
 
 def main():
     print 'Sephora website, showing only Meganav_link (1st level category)'
     categoryLinks = FindCategory(3)
-    FindProductsInOneCategory(categoryLinks[0])
+
+    chromedriver = "/Users/lehathu/Desktop/Web_crawler/chromedriver"
+    os.environ["webdriver.chrome.driver"] = chromedriver
+    driver = webdriver.Chrome(chromedriver)
+
+    file = open('sephoraProducts.txt', 'w+')
+    for index in range(0, len(categoryLinks), 1):
+        FindProductsInOneCategory(categoryLinks[index], file, driver)
+    file.close()
+    driver.close()
 
 
 # this is the standard boilerplate
