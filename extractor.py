@@ -47,44 +47,48 @@ def analyzeProduct(link, driver, fo):
         size = ''.join(size_html[0].findAll(text=True))
         size = str(size).strip(' \t\n\r')
 
-    breadcum = ""
-    breadcum_html = soup.find_all(attrs={'class': "Breadcrumb-link"})
-    if len(breadcum_html) > 1:
-        for item in breadcum_html[0:-1]:
-            breadcum = breadcum + str(''.join(item.findAll(text=True))) + '>'
+    breadcrumb = ""
+    breadcrumb_html = soup.find_all(attrs={'class': "Breadcrumb-link"})
+    if len(breadcrumb_html) > 1:
+        for item in breadcrumb_html[0:-1]:
+            breadcrumb = breadcrumb + str(''.join(item.findAll(text=True))) + '>'
 
-    fo.write(brand + "," + title + "," + price + "," + size + "," + reviews + "," + str(stars) + "," + breadcum + "\n")
+    colors = []
+    colors_html = soup2.find_all(attrs={'class': re.compile("(SwatchGroup-selector)+")})
+    if len(colors_html) > 0:
+        colors_html = colors_html[0].find_all(attrs={'class': 'Swatch'})
+        for item in colors_html:
+            if 'data-analytics' in item.attrs:
+                color = item['data-analytics'].encode("utf8").split(':')
+                if len(color) == 2: colors.append(color[1])
+
+    colors = '|'.join(sorted(colors))
+    fo.write(brand + "," + title + "," + price + "," + size + "," + reviews + "," + str(stars) +
+             "," + breadcrumb + "," + colors + "\n")
     #print brand + ", " + title + ", price: " + price + ", size: " + size + ", " + reviews + ", stars: " + str(stars) + ", " + breadcum
     return
 
 def main():
-    startAt = 0
-    endAt = 30
+    startAt = 10
+    endAt = 20
     print 'Sephora website, extract features from each product page, startAt=' + str(startAt) + ', endAt=' + str(endAt)
 
     chromedriver = "/Users/lehathu/Desktop/Web_crawler/chromedriver"
     os.environ["webdriver.chrome.driver"] = chromedriver
-    chop = webdriver.ChromeOptions()
-    chop.add_extension("/Users/lehathu/Desktop/Web_crawler/adblockplus-1.9.1.crx")
-    driver = webdriver.Chrome(chromedriver, chrome_options=chop)
-
-    fo = open('analyzeResults.txt', 'w+')
-    fi = open('sephoraProducts.txt', 'r')
-    fo.write("Brand,Title,Price,Size,Reviews,Stars,Category \n")
+    driver = webdriver.Chrome(chromedriver)
+    
+    outfilename = 'analyzeResults' + str(startAt) + "-" + str(endAt)+".txt"
+    fo = open(outfilename, 'w+')
+    fi = open('UniqueMakeUp.txt', 'r')
+    fo.write("Brand,Title,Price,Size,Reviews,Stars,Category,Colors \n")
     line = fi.readline()
     currentCount = 0
-    while line:
-        line = fi.readline()
-        max = int(line.split(': ')[0])
-        for num in range(0, max, 1):
-            productUrl = fi.readline()
-            if currentCount >= startAt:
-                analyzeProduct(productUrl, driver, fo)
-            currentCount += 1
-            if currentCount > endAt: break
 
-        line = fi.readline()
-        if currentCount > endAt: break
+    for line in fi:
+        	if currentCount >= startAt:
+        		analyzeProduct(line, driver, fo)
+        	currentCount += 1
+        	if currentCount >= endAt: break
 
     fi.close()
     fo.close()
