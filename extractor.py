@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
 import sys
 import os
 import requests
@@ -69,26 +71,30 @@ def analyzeProduct(link, driver, fo):
     return
 
 def main():
-    startAt = 10
-    endAt = 20
+    startAt = 2217
+    endAt = 2544
     print 'Sephora website, extract features from each product page, startAt=' + str(startAt) + ', endAt=' + str(endAt)
 
-    chromedriver = "/Users/lehathu/Desktop/Web_crawler/chromedriver"
+    chromedriver = '/Users/lehathu/Desktop/Web_crawler/chromedriver'
     os.environ["webdriver.chrome.driver"] = chromedriver
     driver = webdriver.Chrome(chromedriver)
-    
-    outfilename = 'analyzeResults' + str(startAt) + "-" + str(endAt)+".txt"
-    fo = open(outfilename, 'w+')
-    fi = open('UniqueMakeUp.txt', 'r')
+    fo_name = 'analyzeResults'+str(startAt) + '-' + str(endAt)+'.txt'
+
+    fo = open(fo_name, 'w+')
+    fi = open('UniqueMakeUp.txt', 'rU')
     fo.write("Brand,Title,Price,Size,Reviews,Stars,Category,Colors \n")
     line = fi.readline()
     currentCount = 0
 
     for line in fi:
-        	if currentCount >= startAt:
-        		analyzeProduct(line, driver, fo)
-        	currentCount += 1
-        	if currentCount >= endAt: break
+	if currentCount >= startAt:
+		try:
+                	analyzeProduct(line, driver, fo)
+		except:
+			print line
+			continue
+        currentCount += 1
+        if currentCount >= endAt: break
 
     fi.close()
     fo.close()
